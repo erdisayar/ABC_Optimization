@@ -1,0 +1,17 @@
+{
+  "name": "beealgorithmjavascript",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bee.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ionic/core": "^5.1.1"
+  }
+}
