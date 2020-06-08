@@ -1,4 +1,7 @@
 
+import Plot from './PlotlyClass.js';
+
+var plot = new Plot()
 export default class ABC{
     constructor(NP,FoodNumber,limit, maxCycle,D,runtime){
         this.NP = NP;
@@ -9,77 +12,15 @@ export default class ABC{
         this.D=D;
         this.runtime= runtime;
         this.GlobalMins = nj.zeros([1,this.runtime]).flatten();
-        this.plotInitialize();
+        // plot.plotInitialize();
         console.log(this.NP, this.FoodNumber, this.limit, this.maxCycle,this.D,this.runtime);
 
         this.iterationnumber = [];
-        this.GlobalMinIteration_p = [];
+        this.GlobalMinAllIteration = [];
+        this.FoodsAllIteration = []
+        this.ObjAllIteration = []
     }
 
-    plotInitialize(){
-            // Generating random data..
-            var a=[]; 
-            var b=[];
-            var c=[];
-
-
-            var layout = {
-                autosize: false,
-                width: 500,
-                height: 500
-            };
-
-            for(var i=-50;i<100;i++){
-
-            for (var j=-50;j<100;j++){
-
-                var z = i*i + j*j;
-
-                a.push(i);
-                b.push(j);
-                c.push(z);
-
-            }
-
-            }
-
-
-            // Plotting the mesh
-            var data=[
-                {
-                    x: [1],
-                    y: [1],
-                    z: [1],
-                    mode: 'markers',
-                    type: 'scatter3d',
-                    marker: {
-                    color: 'rgb(255, 0, 0)',
-                    size: 5
-                    }
-                },
-                {
-                opacity:0.5,
-                color:'rgb(0,255,255)',
-                type: 'mesh3d',
-                x: a,
-                y: b,
-                z: c,
-                }
-            ];
-            Plotly.newPlot('myDiv', data,layout);
-
-            
-      var trace1 = {
-        x: [0,1,2,3,4,5,6],
-        y: [0,0,0,0,0,0,0],
-        type: 'scatter'
-      };
-      
-      var data = [trace1];
-
-      Plotly.newPlot('myDiv2', data,layout);
-
-    }
 
     run(animate_flag=false){
 
@@ -277,13 +218,20 @@ export default class ABC{
                 console.log('Iter',iter,GlobalMin);
                 iter +=1;
                 this.iterationnumber.push(iter);
-                this.GlobalMinIteration_p.push(GlobalMin);
+                this.GlobalMinAllIteration.push(GlobalMin);
+                this.FoodsAllIteration.push(Foods)
+                this.ObjAllIteration.push(this.objfun(Foods).tolist());
                 // Plot Animation
-                if (animate_flag)
-                    this.PlotlyAnimate(Foods,this.objfun);
-        
+                if (animate_flag){
+                    // plot.PlotlyAnimate(Foods,this.objfun);
+                    // plot.animateLine(this.iterationnumber,this.GlobalMinAllIteration,'mydiv');
+                    plot.animateMesh(Foods,this.objfun,'mvdiv10');
+                }
             }//end while (iter <= maxCycle) (End of ABC)
-        
+            
+            plot.plotLine([...Array(this.maxCycle).keys()],this.GlobalMinAllIteration,'PlotLine'+ r)
+            plot.plotSurface(this.ObjAllIteration,'PlotSurface'+r)
+            plot.plotTable(Foods,this.objfun,'PlotTable'+r);
             this.GlobalMins.set(r,GlobalMin);
         }
         
@@ -348,83 +296,7 @@ export default class ABC{
     }
 
     
-     PlotlyAnimate(foods,objfun){
-    /*
-     foods nxD Nj type array
-     objfun is the callback function
-     */
 
-
-    var x_marker = [];
-    var y_marker = [];
-    var z_marker = [];
-
-    z_marker = objfun(foods)
-               .tolist();
-    foods = foods.tolist();
-
-    for (var i = 0 ; i<foods.length;i++){
-        x_marker.push(foods[i][0])
-        y_marker.push(foods[i][1])
-
-    }
-
-    var data = [{
-        x: x_marker,
-        y: y_marker,
-        z: z_marker,
-        mode: 'markers',
-        type: 'scatter3d',
-        marker: {
-            color: 'rgb(255, 0, 0)',
-            size: 5
-        }
-    },];
-
-    var layout = {
-        autosize: false,
-        width: 500,
-        height: 500
-      };
-
-    Plotly.animate('myDiv', {
-        data,
-        traces: [0],
-        layout:layout
-      }, {
-        transition: {
-          duration: 50,
-          easing: 'cubic-in-out'
-        },
-        frame: {
-          duration: 50
-        }
-      },layout);
-
-
-      var trace1 = {
-        x: this.iterationnumber,
-        y: this.GlobalMinIteration_p,
-        type: 'scatter'
-      };
-      
-      var data = [trace1];
-
-      Plotly.animate('myDiv2', {
-        data,
-        traces: [0],
-        layout:layout
-      }, {
-        transition: {
-          duration: 50,
-          easing: 'cubic-in-out'
-        },
-        frame: {
-          duration: 50
-        }
-      },layout);
-
-}
 
     }
 
@@ -439,4 +311,4 @@ export default class ABC{
 
 
 // var t = new ABC(NP,FoodNumber,limit, maxCycle,D,runtime);
-// t.run();
+// t.run(true);
