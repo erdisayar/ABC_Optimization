@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ABC Optimization Algorithm</title>
+    <title>ABC algorithm</title>
 
     <meta name="viewport" content="widh=device-width, initial-scale=1" />
     <meta charset="UTF-8" />
@@ -13,6 +13,13 @@
       type="module"
       src="https://cdn.jsdelivr.net/npm/@ionic/core@next/dist/ionic/ionic.esm.js"
     ></script>
+
+    <script type="module">
+      import { alertController } from 'https://cdn.jsdelivr.net/npm/@ionic/core@next/dist/ionic/index.esm.js';
+      window.alertController = alertController;
+    </script>
+
+
     <script
       nomodule
       src="https://cdn.jsdelivr.net/npm/@ionic/core@next/dist/ionic/ionic.js"
@@ -51,7 +58,7 @@
               ABC Algorithm
               <img
                 class="title-image"
-                src="honeycomb.png"
+                src="Honeycomb.png"
                 width="45"
                 height="45"
               />
@@ -86,13 +93,25 @@
             </ion-item>
 
             <ion-item>
+              <ion-label>Objective Function</ion-label>
+              <ion-select id="objective_function" value="Sphere">
+                <ion-select-option value="Sphere">Sphere</ion-select-option>
+                <ion-select-option value="Griewank">Griewank</ion-select-option>
+                <ion-select-option value="Schwefel">Schwefel</ion-select-option>
+                <ion-select-option value="Rosenbrock">Rosenbrock</ion-select-option>
+                <ion-select-option value="Styblinski">Styblinski</ion-select-option>
+                <ion-select-option value="Rastrigin">Rastrigin</ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- <ion-item>
               <ion-checkbox
                 id="animationID"
                 color="danger"
                 slot="start"
               ></ion-checkbox>
               <ion-label>Animation</ion-label>
-            </ion-item>
+            </ion-item> -->
 
             <ion-item>
               <ion-button color="warning" class="ionic-menu-button"

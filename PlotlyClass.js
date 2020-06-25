@@ -15,11 +15,38 @@ export default class PlotlyClass {
     selector.append(divTag);
   }
 
-  plotLine(x, y, idTag) {
+
+  plotHistogram(allGobalMin,idTag,cycle){
     this.documentCreateElement(idTag);
 
+    
+    var y = [];
+    var x = [];
+    var color = [];
+    for (var i = 0; i < allGobalMin.length/(cycle+1); i++) {
+      y[i] = Math.min(...allGobalMin.slice(i*cycle,(i+1)*cycle));
+      x[i] = "Run " + (i+1).toString();
+      color[i] = `rgba(${parseInt(Math.random()*255)},${parseInt(Math.random()*255)},${parseInt(Math.random()*255)},1)`
+      var trace = {
+        x: x,
+        y: y,
+        marker:{
+          color:color
+        },
+        type: 'bar',
+      };
+    var data = [trace];
+    Plotly.newPlot(idTag, data);
+}
+
+
+  }
+
+  plotLine(x, y, idTag,r,cycle) {
+    this.documentCreateElement(idTag);
+    y = y.slice(y.length-cycle,y.length);
     var layout = {
-        title: 'Objective Function Vs Iteration',
+        title: 'Objective Function Vs Iteration for runtime = ' + (r+1).toString(),
         xaxis: {
           title: 'Iteration',
           showgrid: false,
@@ -44,26 +71,33 @@ export default class PlotlyClass {
     Plotly.newPlot(idTag, data,layout);
   }
 
-  plotMesh(x, y, z,idTag) {
+
+  plotObjFunction(foods,obj,idTag){
     this.documentCreateElement(idTag);
+
+    var n_rows = foods.shape[0];
+    var dimension = foods.shape[1];
+    var number_of_variables = 150;
+    var foods_tmp = nj.zeros([number_of_variables,dimension]);
+
+
+    // var x = this.linespace(0,50,50);
+    // var y = this.linespace(0,50,50);
+
+    var foods_random = nj.random([500,2]);
+    foods_random = foods_random.multiply(200);
+    foods_random = foods_random.subtract(100)
+    var result = obj(foods_random).tolist();
+    var z = result;
+    foods_random = (foods_random.T).tolist();
+    var x = foods_random[0];
+    var y = foods_random[1];
+
+   
+
+
+    
     // Plotting the mesh
-
-    var a=[]; 
-    var b=[]; 
-    var c=[];
-    for(var i=-50;i<100;i++){
-
-        for (var j=-50;j<100;j++){
-        
-            var z1 = i*i + j*j;
-        
-            a.push(i);
-            b.push(j);
-            c.push(z1);
-        
-        }
-        
-        }
 
     var layout = {
       autosize: false,
@@ -71,11 +105,28 @@ export default class PlotlyClass {
       height: 500,
     };
 
+    var foods_marker_container = [Array(),Array(),Array()];
+    for (var food_row = 0 ; food_row < foods.shape[0]; food_row++){
+
+
+      for (var food_col = 0 ; food_col < foods.shape[1]; food_col++){
+
+        foods_marker_container[food_col].push(foods.get(food_row,food_col));
+
+      }
+
+      
+
+    }
+
+    foods_marker_container[foods.shape[1]] = obj(foods).tolist()
+
+
     var data = [
       {
-        x: [1],
-        y: [1],
-        z: [1],
+        x: foods_marker_container[0],
+        y: foods_marker_container[1],
+        z: foods_marker_container[2],
         mode: "markers",
         type: "scatter3d",
         marker: {
@@ -87,9 +138,75 @@ export default class PlotlyClass {
         opacity: 0.5,
         color: "rgb(0,255,255)",
         type: "mesh3d",
-        x: a,
-        y: b,
-        z: c,
+        x: x,
+        y: y,
+        z: z,
+      },
+    ];
+    Plotly.newPlot(idTag, data, layout)
+
+    
+
+
+
+  }
+
+
+  linespace(startValue, stopValue, cardinality) {
+    var arr = [];
+    var step = (stopValue - startValue) / (cardinality - 1);
+    for (var i = 0; i < cardinality; i++) {
+      arr.push(startValue + (step * i));
+    }
+    return arr;
+  }
+
+  plotMesh(x, y, z,idTag) {
+    this.documentCreateElement(idTag);
+    // Plotting the mesh
+
+    // var a=[]; 
+    // var b=[]; 
+    // var c=[];
+    // for(var i=-50;i<100;i++){
+
+    //     for (var j=-50;j<100;j++){
+        
+    //         var z1 = i*i + j*j;
+        
+    //         a.push(i);
+    //         b.push(j);
+    //         c.push(z1);
+        
+    //     }
+        
+    //     }
+
+    var layout = {
+      autosize: false,
+      width: 500,
+      height: 500,
+    };
+
+    var data = [
+      // {
+      //   x: [1],
+      //   y: [1],
+      //   z: [1],
+      //   mode: "markers",
+      //   type: "scatter3d",
+      //   marker: {
+      //     color: "rgb(255, 0, 0)",
+      //     size: 5,
+      //   },
+      // },
+      {
+        opacity: 0.5,
+        color: "rgb(0,255,255)",
+        type: "mesh3d",
+        x: x,
+        y: y,
+        z: z,
       },
     ];
     Plotly.newPlot(idTag, data, layout);
@@ -414,4 +531,32 @@ export default class PlotlyClass {
       layout
     );
   }
+
+  
+printCombination(arr,n,r){
+
+  data = "0".repeat(r);
+
+  this.combinationUtil(arr,data,0,n-1,0,r);
+}
+
+
+combinationUtil(arr,data,start,end,index,r){
+
+  if (index === r){
+      console.log(data);
+  }
+
+  var i = start;
+
+  while(i<= end && end-i+r >= r - index){
+      data = data.replace(data[index],arr[i])
+      i++;
+      combinationUtil(arr,data,i,end,index+1,r);
+  }
+
+
+}
+
+  
 }

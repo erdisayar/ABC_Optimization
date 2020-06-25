@@ -1,9 +1,152 @@
 
 import Plot from './PlotlyClass.js';
 
-var plot = new Plot()
+var plot = new Plot();
+
+
+ function Griewank(foods){
+
+        var result_array = [];
+        var n_rows = foods.shape[0];
+        var dimension = foods.shape[1];
+
+        for (var i= 0 ; i< n_rows ; i++){
+            var result = 0 ;
+            var product = 1;
+            for (var j = 0; j < dimension; j++){
+                result += (1/4000)*(foods.get(i,j)*foods.get(i,j)) 
+                product *=( Math.cos(foods.get(i,j)) / Math.sqrt(j+1)  + 1);
+                result  = result -product;  
+            }
+            result_array.push(result);
+
+        }
+        return nj.array(result_array);
+    }
+
+function Sphere(foods){
+        
+    var result_array = [];
+    var n_rows = foods.shape[0]
+    var dimension = foods.shape[1]
+
+    for (var i= 0 ; i< n_rows ; i++){
+
+        var result = 0 ;
+        for (var j = 0; j < dimension; j++){
+
+            result += foods.get(i,j)*foods.get(i,j);
+
+        }
+        result_array.push(result);
+
+    }
+
+    return nj.array(result_array);
+
+}
+
+
+function Rosenbrock(foods){
+        
+    var result_array = [];
+    var n_rows = foods.shape[0]
+    var dimension = foods.shape[1]
+
+    for (var i= 0 ; i< n_rows ; i++){
+
+        var result = 0 ;
+        for (var j = 0; j < dimension - 1 ; j++){
+
+            result += 100 * (foods.get(i,j+1) - foods.get(i,j)*foods.get(i,j))**2 + (1 -foods.get(i,j)*foods.get(i,j) )**2;
+
+        }
+        result_array.push(result);
+
+    }
+
+    return nj.array(result_array);
+
+}
+
+function Styblinski(foods){
+        
+    var result_array = [];
+    var n_rows = foods.shape[0]
+    var dimension = foods.shape[1]
+
+    for (var i= 0 ; i< n_rows ; i++){
+
+        var result = 0 ;
+        for (var j = 0; j < dimension; j++){
+
+            result += 0.5*((foods.get(i,j)**4) -16*(foods.get(i,j)**2) + 5*(foods.get(i,j))) ;
+
+        }
+        result_array.push(result);
+
+    }
+
+    return nj.array(result_array);
+
+}
+
+function Rastrigin(foods){
+    // https://en.wikipedia.org/wiki/Rastrigin_function
+    var result_array = [];
+    var n_rows = foods.shape[0]
+    var dimension = foods.shape[1]
+    var A = 10;
+
+    for (var i= 0 ; i< n_rows ; i++){
+
+        var result = 0 ;
+        for (var j = 0; j < dimension; j++){
+            
+            result += foods.get(i,j)*foods.get(i,j) - A*Math.cos(2*Math.PI*foods.get(i,j));
+
+        }
+        result_array.push(result + A*dimension);
+
+    }
+
+    return nj.array(result_array);
+
+}
+
+function Schwefel(foods){
+    // https://www.sfu.ca/~ssurjano/schwef.html
+    var result_array = [];
+    var n_rows = foods.shape[0]
+    var dimension = foods.shape[1]
+
+    for (var i= 0 ; i< n_rows ; i++){
+
+        var result = 0 ;
+        for (var j = 0; j < dimension; j++){
+
+            result += foods.get(i,j)*Math.sin(Math.sqrt(Math.abs(foods.get(i,j))));
+
+        }
+        result_array.push(418*9829*dimension -  result);
+
+    }
+
+    return nj.array(result_array);
+
+}
+
+var myobjective_functions = {
+    "Sphere":Sphere,
+    "Griewank":Griewank,
+    "Rosenbrock":Rosenbrock,
+    "Styblinski":Styblinski,
+    "Rastrigin":Rastrigin,
+    "Schwefel":Schwefel
+}
+
 export default class ABC{
-    constructor(NP,FoodNumber,limit, maxCycle,D,runtime){
+    constructor(NP,FoodNumber,limit, maxCycle,D,runtime,objfun){
         this.NP = NP;
         this.FoodNumber = FoodNumber;
         this.limit = limit;
@@ -19,6 +162,12 @@ export default class ABC{
         this.GlobalMinAllIteration = [];
         this.FoodsAllIteration = []
         this.ObjAllIteration = []
+        this.objfun = this.objective_function_selection(objfun);
+    }
+
+    objective_function_selection(parameter){
+
+        return myobjective_functions[parameter];
     }
 
 
@@ -29,6 +178,7 @@ export default class ABC{
         var D = this.D;
 
         for (var r=0; r<this.runtime; r++){
+            this.ObjAllIteration = [];
     
             var rangeinterval = (ub.subtract(lb)).flatten();
             var FoodNumber = this.FoodNumber;
@@ -229,11 +379,18 @@ export default class ABC{
                 }
             }//end while (iter <= maxCycle) (End of ABC)
             
-            plot.plotLine([...Array(this.maxCycle).keys()],this.GlobalMinAllIteration,'PlotLine'+ r)
-            plot.plotSurface(this.ObjAllIteration,'PlotSurface'+r)
-            plot.plotTable(Foods,this.objfun,'PlotTable'+r);
-            this.GlobalMins.set(r,GlobalMin);
+            plot.plotLine([...Array(this.maxCycle).keys()],this.GlobalMinAllIteration,'PlotLine'+ r, r, this.maxCycle);
+            plot.plotSurface(this.ObjAllIteration,'PlotSurface'+r);
+            plot.plotTable(Foods,this.objfun,'PlotTable'+r);;
+            // plot.plotMesh(Foods.tolist()[0],Foods.tolist()[1],Foods.tolist()[2],'PlotMesh');
+            if (Foods.shape[1] === 2){
+                plot.plotObjFunction(Foods,this.objfun,'PlotMesh'+r);
+            }
+           
+            this.GlobalMins.set(r,GlobalMin);;
+            
         }
+         plot.plotHistogram(this.GlobalMinAllIteration,'idTag',this.maxCycle);
         
     }
 
@@ -273,27 +430,29 @@ export default class ABC{
         
     }
 
+   
+
 
         
-    objfun = function(foods){
-        /* 
-        Foods is the nj array 
-        */
-        var S = foods.multiply(foods);
-        S = S.T; //Transpose
-        // a= [[1,2],[3,4]]  => shape [2,2] 
-        var tmp  = [];
-        for (var i=0; i<S.shape[1]; i++){ //S.shape[1] => Number of elements for example:10
-            var sum = 0;
-            for (var j=0; j<S.shape[0];j++){ // S.shape[0] => Dimension for example: 2
-                sum += S.get(j,i);
-            }
-            tmp.push(sum);
-        }
+    //  objfun(foods){
+    //     /* 
+    //     Foods is the nj array 
+    //     */
+    //     // var S = foods.multiply(foods);
+    //     // S = S.T; //Transpose
+    //     // // a= [[1,2],[3,4]]  => shape [2,2] 
+    //     // var tmp  = [];
+    //     // for (var i=0; i<S.shape[1]; i++){ //S.shape[1] => Number of elements for example:10
+    //     //     var sum = 0;
+    //     //     for (var j=0; j<S.shape[0];j++){ // S.shape[0] => Dimension for example: 2
+    //     //         sum += S.get(j,i);
+    //     //     }
+    //     //     tmp.push(sum);
+    //     // }
 
 
-        return nj.array(tmp);
-    }
+    //     return this.sphere_obj(foods);;
+    // }
 
     
 
